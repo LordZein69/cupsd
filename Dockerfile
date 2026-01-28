@@ -1,10 +1,6 @@
 ARG FRM='debian:stable-slim'
-ARG TAG='latest'
 
 FROM ${FRM}
-ARG FRM
-ARG TAG
-ARG TARGETPLATFORM
 
 # Install Packages (basic tools, cups, basic drivers, HP drivers).
 # See https://wiki.debian.org/CUPSDriverlessPrinting,
@@ -27,23 +23,7 @@ RUN apt-get update \
   openprinting-ppds \
   hp-ppd \
   printer-driver-brlaser \
-  printer-driver-c2050 \
-  printer-driver-c2esp \
-  printer-driver-cjet \
-  printer-driver-dymo \
-  printer-driver-escpr \
-  printer-driver-foo2zjs \
-  printer-driver-fujixerox \
-  printer-driver-m2300w \
-  printer-driver-min12xxw \
-  printer-driver-pnm2ppa \
-  printer-driver-indexbraille \
-  printer-driver-oki \
-  printer-driver-ptouch \
-  printer-driver-pxljr \
-  printer-driver-sag-gdi \
-  printer-driver-splix \
-  printer-driver-cups-pdf \
+  printer-driver-gutenprint \
   smbclient \
   avahi-utils \
 && apt-get clean \
@@ -63,8 +43,9 @@ RUN useradd \
 && sed -i '/%sudo[[:space:]]/ s/ALL[[:space:]]*$/NOPASSWD:ALL/' /etc/sudoers
 
 # Copy the default configuration file
-ADD stuff /temp
-RUN /bin/bash /temp/install.sh \
+COPY stuff /temp
+RUN chmod +x /temp/install.sh \
+    && /bin/bash /temp/install.sh \
     && rm -f /temp/install.sh
 
 # Default shell
