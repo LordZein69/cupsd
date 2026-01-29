@@ -1,11 +1,15 @@
+Original Form [mwatz1234/cupsd](https://github.com/mwatz1234/cupsd)
+
 # CUPS print server image
 
 ## Overview
+
 This is a docker image based from olbat/cupsd, but edited to support ARM devices
 
 Multi-arch image built for both Raspberry Pi (arm64, arm32/v7, arm32/v6) and amd64.
 
 Below is an docker compose example.
+
 ```
 services:
   cups:
@@ -25,4 +29,5 @@ services:
 ```
 
 ## Usage:
+
 For addional information refer to [olbat/cupsd](https://github.com/olbat/dockerfiles/tree/master/cupsd).

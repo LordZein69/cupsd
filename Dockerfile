@@ -1,7 +1,9 @@
-ARG FRM='debian:stable-slim'
+FROM debian:stable-slim
 
-FROM ${FRM}
-
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Asia/Makassar
+ENV CUPSADMIN=print
+ENV CUPSPASSWORD=admin1234
 # Install Packages (basic tools, cups, basic drivers, HP drivers).
 # See https://wiki.debian.org/CUPSDriverlessPrinting,
 #     https://wiki.debian.org/CUPSPrintQueues
@@ -9,44 +11,41 @@ FROM ${FRM}
 # Note: printer-driver-all has been removed from Debian testing,
 #       therefore printer-driver-* packages are manuall added.
 RUN apt-get update \
-&& apt-get install -y \
-  sudo \
-  whois \
-  usbutils \
-  cups \
-  cups-client \
-  cups-bsd \
-  cups-filters \
-  cups-browsed \
-  foomatic-db-engine \
-  foomatic-db-compressed-ppds \
-  openprinting-ppds \
-  hp-ppd \
-  printer-driver-brlaser \
-  printer-driver-gutenprint \
-  smbclient \
-  avahi-utils \
-&& apt-get clean \
-&& rm -rf /var/lib/apt/lists/*
+  && apt-get install -y --no-install-recommends \
+      sudo \
+      whois \
+      usbutils \
+      cups \
+      cups-client \
+      cups-bsd \
+      cups-filters \
+      cups-browsed \
+      foomatic-db-engine \
+      foomatic-db-compressed-ppds \
+      openprinting-ppds \
+      printer-driver-gutenprint \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
+
 
 # This will use port 631
 EXPOSE 631
 
 # Add user and disable sudo password checking
 RUN useradd \
-  --groups=sudo,lp,lpadmin \
-  --create-home \
-  --home-dir=/home/print \
-  --shell=/bin/bash \
-  --password=$(mkpasswd print) \
-  print \
-&& sed -i '/%sudo[[:space:]]/ s/ALL[[:space:]]*$/NOPASSWD:ALL/' /etc/sudoers
+      --groups=sudo,lp,lpadmin \
+      --create-home \
+      --home-dir=/home/print \
+      --shell=/bin/bash \
+      --password=$(mkpasswd ${CUPSPASSWORD}) \
+      ${CUPSADMIN} \
+  && sed -i '/%sudo[[:space:]]/ s/ALL[[:space:]]*$/NOPASSWD:ALL/' /etc/sudoers
 
-# Copy the default configuration file
-COPY stuff /temp
-RUN chmod +x /temp/install.sh \
-    && /bin/bash /temp/install.sh \
-    && rm -f /temp/install.sh
+# Copy sane cupsd.conf
+COPY stuff/cupsd.conf /etc/cups/cupsd.conf
 
-# Default shell
+# Backup config & allow override
+RUN cp -rp /etc/cups /etc/cups-bak
+VOLUME ["/etc/cups"]
+
 CMD ["/usr/sbin/cupsd", "-f"]
